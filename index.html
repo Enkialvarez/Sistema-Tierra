@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>El Sistema Tierra — Simulador Interactivo v3 | Lab. Virtual Álvarez 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a1420;--bg-alt:#0f1d2e;--card:#142539;--card-soft:#102233;
+    --border:rgba(255,255,255,0.07);--text:#eaf2fa;--text-muted:#93a8c2;
+    --atmosfera:#5ec8f0;--atmosfera-d:#1c3a4d;--hidrosfera:#2d7dd2;--hidrosfera-d:#10243f;
+    --litosfera:#d98c4a;--litosfera-d:#3a2718;--biosfera:#5fb85b;--biosfera-d:#1c3320;
+    --radius:14px;--shadow:0 10px 30px rgba(0,0,0,0.35);
+    --glow-atmosfera:0 0 20px rgba(94,200,240,0.3);--glow-hidrosfera:0 0 20px rgba(45,125,210,0.3);
+    --glow-litosfera:0 0 20px rgba(217,140,74,0.3);--glow-biosfera:0 0 20px rgba(95,184,91,0.3);
+  }
+  *{box-sizing:border-box;}html{scroll-behavior:smooth;}
+  body{margin:0;font-family:'Inter',sans-serif;background:radial-gradient(ellipse at 20% -10%, rgba(94,200,240,0.10), transparent 45%),radial-gradient(ellipse at 90% 10%, rgba(95,184,91,0.08), transparent 40%),var(--bg);color:var(--text);line-height:1.6;}
+  h1,h2,h3,h4{font-family:'Space Grotesk',sans-serif;margin:0 0 .4em;letter-spacing:.01em;}
+  p{margin:0 0 1em;color:var(--text-muted);}
+  .container{max-width:1180px;margin:0 auto;padding:0 24px;}
+
+  .logo-svg{width:48px;height:48px;}
+  .logo-svg .orbit{animation:orbit 8s linear infinite;transform-origin:center;}
+  .logo-svg .pulse{animation:pulseLogo 2s ease-in-out infinite;}
+  @keyframes orbit{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+  @keyframes pulseLogo{0%,100%{opacity:0.6;}50%{opacity:1;}}
+
+  nav{position:sticky;top:0;z-index:100;background:rgba(10,20,32,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+  nav .container{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;flex-wrap:wrap;gap:10px;}
+  .brand{display:flex;align-items:center;gap:12px;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.05rem;}
+  .brand-text{display:flex;flex-direction:column;}
+  .brand-text .main{color:var(--text);font-size:1.05rem;}
+  .brand-text .sub{color:var(--text-muted);font-size:.7rem;font-weight:500;letter-spacing:.05em;}
+  .navlinks{display:flex;gap:6px;flex-wrap:wrap;}
+  .navlinks a{color:var(--text-muted);text-decoration:none;font-size:.85rem;font-weight:600;padding:8px 12px;border-radius:8px;transition:.2s;}
+  .navlinks a:hover{color:var(--text);background:rgba(255,255,255,0.06);}
+  .navlinks a.active{color:var(--atmosfera);background:rgba(94,200,240,0.08);}
+
+  header.hero{padding:64px 0 40px;position:relative;overflow:hidden;}
+  header.hero::before{content:"";position:absolute;inset:0;background-image:radial-gradient(2px 2px at 10% 20%, rgba(255,255,255,.5) 0, transparent 50%),radial-gradient(1.5px 1.5px at 80% 10%, rgba(255,255,255,.4) 0, transparent 50%),radial-gradient(1.5px 1.5px at 60% 70%, rgba(255,255,255,.35) 0, transparent 50%),radial-gradient(2px 2px at 30% 80%, rgba(255,255,255,.45) 0, transparent 50%),radial-gradient(1px 1px at 90% 50%, rgba(255,255,255,.3) 0, transparent 50%),radial-gradient(1.5px 1.5px at 45% 35%, rgba(255,255,255,.4) 0, transparent 50%);opacity:.6;pointer-events:none;}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:.75rem;letter-spacing:.18em;text-transform:uppercase;color:var(--atmosfera);border:1px solid rgba(94,200,240,0.3);padding:5px 14px;border-radius:999px;margin-bottom:18px;background:rgba(94,200,240,0.06);}
+  .eyebrow .live-dot{width:6px;height:6px;border-radius:50%;background:var(--biosfera);animation:pulse 1.5s infinite;}
+  header.hero h1{font-size:clamp(2.1rem,5vw,3.4rem);max-width:780px;}
+  header.hero h1 em{font-style:normal;color:var(--atmosfera);}
+  header.hero p.lead{max-width:680px;font-size:1.05rem;}
+  .hero-meta{display:flex;gap:14px;flex-wrap:wrap;margin-top:22px;font-size:.85rem;color:var(--text-muted);}
+  .hero-meta span{border:1px solid var(--border);padding:6px 14px;border-radius:999px;background:var(--card-soft);display:flex;align-items:center;gap:6px;}
+  .hero-meta .atmosfera-tag{border-color:rgba(94,200,240,0.3);color:var(--atmosfera);}
+  .hero-meta .hidrosfera-tag{border-color:rgba(45,125,210,0.3);color:var(--hidrosfera);}
+  .hero-meta .litosfera-tag{border-color:rgba(217,140,74,0.3);color:var(--litosfera);}
+  .hero-meta .biosfera-tag{border-color:rgba(95,184,91,0.3);color:var(--biosfera);}
+
+  section{padding:54px 0;}
+  .section-head{margin-bottom:30px;max-width:760px;}
+  .section-head .eyebrow{margin-bottom:10px;}
+  .section-head h2{font-size:clamp(1.6rem,3.5vw,2.3rem);}
+
+  .crosssection-wrap{display:grid;grid-template-columns:1.1fr 1.4fr;gap:24px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);}
+  .layers{display:flex;flex-direction:column;min-height:620px;}
+  .layer{border:none;cursor:pointer;text-align:left;color:var(--text);font-family:'Space Grotesk',sans-serif;padding:14px 20px;display:flex;flex-direction:column;justify-content:center;gap:2px;position:relative;transition:.25s;border-bottom:1px solid rgba(0,0,0,.18);font-size:.95rem;}
+  .layer .range{font-size:.72rem;color:rgba(255,255,255,.65);font-family:'Inter',sans-serif;font-weight:500;}
+  .layer .name{font-weight:700;}
+  .layer:hover{filter:brightness(1.15);}
+  .layer.active{outline:2px solid #fff;outline-offset:-2px;z-index:2;box-shadow:inset 0 0 0 999px rgba(255,255,255,0.06);}
+  .layer.active::after{content:"●";position:absolute;right:18px;top:50%;transform:translateY(-50%);color:#fff;font-size:.7rem;animation:pulse 1.6s infinite;}
+  @keyframes pulse{0%,100%{opacity:.3;}50%{opacity:1;}}
+  .layer.l-exosfera{background:#0c1a2c;}
+  .layer.l-termosfera{background:linear-gradient(180deg,#16314a,#1b3f5c);}
+  .layer.l-mesosfera{background:linear-gradient(180deg,#1f4f6e,#246081);}
+  .layer.l-estratosfera{background:linear-gradient(180deg,#2a7a9c,#39a0c4);}
+  .layer.l-troposfera{background:linear-gradient(180deg,#56bfe6,#7fd4f0);color:#0a1420;}
+  .layer.l-troposfera .range{color:rgba(10,20,32,.6);}
+  .layer.l-superficie{background:linear-gradient(180deg,var(--biosfera),var(--hidrosfera));color:#06131f;}
+  .layer.l-superficie .range{color:rgba(6,19,31,.65);}
+  .layer.l-litosfera{background:linear-gradient(180deg,#a8693a,#7a4423);}
+  .layer.l-astenosfera{background:linear-gradient(180deg,#5e2f15,#3a1a0c);}
+  .info-panel{padding:26px 28px;display:flex;flex-direction:column;justify-content:center;}
+  .info-panel .tag{display:inline-flex;align-items:center;gap:8px;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.3rem;margin-bottom:6px;}
+  .info-panel .tag .icon{font-size:1.6rem;}
+  .info-panel .range-label{font-size:.8rem;color:var(--text-muted);margin-bottom:12px;font-weight:600;letter-spacing:.04em;}
+  .info-panel .desc{color:var(--text);font-size:.98rem;}
+  .info-panel .extra{margin-top:14px;padding:12px 14px;border-radius:10px;background:var(--card-soft);border:1px solid var(--border);font-size:.88rem;color:var(--text-muted);}
+  .info-panel .metric-box{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:14px;}
+  .info-panel .metric{padding:10px 12px;border-radius:8px;background:var(--card-soft);border:1px solid var(--border);text-align:center;}
+  .info-panel .metric .val{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.1rem;color:var(--atmosfera);}
+  .info-panel .metric .lbl{font-size:.75rem;color:var(--text-muted);margin-top:2px;}
+  @media (max-width: 860px){.crosssection-wrap{grid-template-columns:1fr;}.layers{min-height:auto;flex-direction:row;overflow-x:auto;}.layer{min-width:150px;border-bottom:none;border-right:1px solid rgba(0,0,0,.18);}}
+
+  .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;}
+  .stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;transition:.2s;position:relative;overflow:hidden;}
+  .stat-card:hover{border-color:var(--atmosfera);transform:translateY(-2px);box-shadow:var(--glow-atmosfera);}
+  .stat-card .label{font-size:.78rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;}
+  .stat-card .value{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.35rem;}
+  .stat-card .unit{font-size:.8rem;color:var(--text-muted);margin-top:2px;}
+
+  .water-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:28px;box-shadow:var(--shadow);}
+  .water-bar{display:flex;width:100%;height:46px;border-radius:10px;overflow:hidden;margin:18px 0;border:1px solid var(--border);position:relative;}
+  .water-bar .seg{display:flex;align-items:center;justify-content:center;color:#06131f;font-weight:700;font-size:.85rem;cursor:pointer;transition:.2s;font-family:'Space Grotesk',sans-serif;position:relative;}
+  .water-bar .seg:hover{filter:brightness(1.12);transform:scaleY(1.06);z-index:1;}
+  .seg-salada{background:var(--hidrosfera);color:#fff;flex:97.5;}
+  .seg-dulce{background:#9be0d8;flex:2.5;}
+  .freshwater{margin-top:28px;}
+  .fw-bar{display:flex;width:100%;height:38px;border-radius:10px;overflow:hidden;border:1px solid var(--border);}
+  .fw-seg{display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:#06131f;cursor:pointer;transition:.2s;font-family:'Space Grotesk',sans-serif;}
+  .fw-seg:hover{filter:brightness(1.15);}
+  .fw-glaciares{background:#bfe8f7;flex:68.7;}
+  .fw-subterranea{background:#7fd0e6;flex:30.1;color:#06131f;}
+  .fw-superficial{background:#3f9fc4;flex:1.2;color:#fff;font-size:.6rem;}
+  .water-detail{margin-top:16px;padding:14px 16px;border-radius:10px;background:var(--card-soft);border:1px solid var(--border);font-size:.9rem;color:var(--text-muted);min-height:54px;}
+  .water-detail strong{color:var(--text);}
+  .water-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px;}
+  .w-metric{text-align:center;padding:10px;border-radius:8px;background:var(--card-soft);border:1px solid var(--border);}
+  .w-metric .num{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.2rem;color:var(--hidrosfera);}
+  .w-metric .txt{font-size:.75rem;color:var(--text-muted);}
+  .legend{display:flex;gap:18px;flex-wrap:wrap;margin-top:14px;font-size:.8rem;color:var(--text-muted);}
+  .legend span{display:inline-flex;align-items:center;gap:6px;}
+  .legend i{width:12px;height:12px;border-radius:3px;display:inline-block;}
+
+  .bio-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;}
+  .bio-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:22px;border-top:4px solid var(--biosfera);transition:.2s;}
+  .bio-card:hover{transform:translateY(-3px);box-shadow:var(--glow-biosfera);}
+  .bio-card.econ{border-top-color:var(--litosfera);}
+  .bio-card.econ:hover{box-shadow:var(--glow-litosfera);}
+  .bio-card h3{font-size:1.05rem;margin-bottom:8px;}
+  .bio-card .icon{font-size:1.7rem;margin-bottom:8px;display:block;}
+  .bio-card p{font-size:.9rem;margin:0;}
+  .bio-card .metric-tag{display:inline-block;margin-top:10px;padding:4px 10px;border-radius:6px;background:var(--biosfera-d);color:var(--biosfera);font-size:.75rem;font-weight:600;}
+
+  .tabs{display:flex;gap:8px;margin-bottom:28px;flex-wrap:wrap;}
+  .tab-btn{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:.9rem;padding:10px 18px;border-radius:999px;border:1px solid var(--border);background:var(--card);color:var(--text-muted);cursor:pointer;transition:.2s;}
+  .tab-btn:hover{border-color:var(--atmosfera);color:var(--text);}
+  .tab-btn.active{background:var(--atmosfera);color:#06131f;border-color:var(--atmosfera);}
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;animation:fadeIn .35s ease;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+  .quiz-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:22px 24px;margin-bottom:16px;transition:.2s;}
+  .quiz-card:hover{border-color:rgba(94,200,240,0.2);}
+  .quiz-card h4{font-size:1rem;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+  .quiz-card .q-num{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:var(--atmosfera-d);color:var(--atmosfera);font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:.85rem;}
+  .quiz-options{display:flex;flex-direction:column;gap:8px;}
+  .quiz-options label{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;border:1px solid var(--border);cursor:pointer;font-size:.92rem;transition:.15s;background:var(--card-soft);}
+  .quiz-options label:hover{border-color:var(--atmosfera);background:rgba(94,200,240,0.05);}
+  .quiz-options label.correct{border-color:var(--biosfera);background:rgba(95,184,91,0.12);}
+  .quiz-options label.incorrect{border-color:#e06262;background:rgba(224,98,98,0.12);}
+  .quiz-options input{accent-color:var(--atmosfera);width:16px;height:16px;}
+  .quiz-explain{margin-top:12px;font-size:.85rem;color:var(--text-muted);padding:10px 12px;border-radius:8px;background:var(--card-soft);border:1px solid var(--border);display:none;}
+  .quiz-explain.show{display:block;animation:fadeIn .3s ease;}
+  .quiz-explain strong{color:var(--atmosfera);}
+
+  .btn{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:.92rem;padding:13px 26px;border-radius:10px;border:none;cursor:pointer;transition:.2s;background:var(--atmosfera);color:#06131f;}
+  .btn:hover{filter:brightness(1.1);transform:translateY(-1px);box-shadow:0 4px 15px rgba(94,200,240,0.3);}
+  .btn.secondary{background:var(--card);color:var(--text);border:1px solid var(--border);}
+  .btn.secondary:hover{border-color:var(--atmosfera);color:var(--atmosfera);}
+  .btn.danger{background:#e06262;color:#fff;}
+  .btn.danger:hover{box-shadow:0 4px 15px rgba(224,98,98,0.3);}
+  .btn.success{background:var(--biosfera);color:#06131f;}
+  .btn.success:hover{box-shadow:0 4px 15px rgba(95,184,91,0.3);}
+
+  .score-banner{margin-top:18px;padding:18px 20px;border-radius:12px;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.05rem;display:none;border:1px solid var(--border);}
+  .score-banner.show{display:block;animation:fadeIn .4s ease;}
+  .score-banner .sub{font-family:'Inter',sans-serif;font-weight:400;font-size:.88rem;color:var(--text-muted);margin-top:6px;}
+  .score-banner .stars{font-size:1.4rem;margin-top:8px;}
+
+  .quest-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px;margin-bottom:14px;transition:.2s;}
+  .quest-card:hover{border-color:rgba(94,200,240,0.15);}
+  .quest-card label{display:block;font-weight:600;margin-bottom:10px;font-size:.95rem;color:var(--text);}
+  .quest-card .q-badge{display:inline-block;padding:2px 8px;border-radius:4px;background:var(--atmosfera-d);color:var(--atmosfera);font-size:.75rem;margin-right:8px;font-weight:700;}
+  .quest-card textarea{width:100%;min-height:100px;border-radius:8px;border:1px solid var(--border);background:var(--card-soft);color:var(--text);padding:12px;font-family:'Inter',sans-serif;font-size:.92rem;resize:vertical;transition:.2s;}
+  .quest-card textarea:focus{outline:2px solid var(--atmosfera);border-color:var(--atmosfera);}
+  .quest-card .word-count{text-align:right;font-size:.75rem;color:var(--text-muted);margin-top:4px;}
+
+  .calc-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+  @media (max-width:760px){.calc-grid{grid-template-columns:1fr;}}
+  .calc-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;}
+  .calc-card h3{margin-bottom:8px;}
+  .calc-card p.desc{font-size:.88rem;margin-bottom:16px;}
+  .calc-card label{display:block;font-size:.85rem;font-weight:600;margin-bottom:6px;color:var(--text-muted);}
+  .calc-card input{width:100%;padding:11px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card-soft);color:var(--text);font-size:.95rem;margin-bottom:16px;transition:.2s;}
+  .calc-card input:focus{outline:2px solid var(--atmosfera);border-color:var(--atmosfera);}
+  .result-list{display:flex;flex-direction:column;gap:10px;margin-top:6px;}
+  .result-item{display:flex;justify-content:space-between;gap:10px;padding:12px 14px;border-radius:8px;background:var(--card-soft);border:1px solid var(--border);font-size:.9rem;align-items:center;}
+  .result-item .v{font-family:'Space Grotesk',sans-serif;font-weight:700;color:var(--atmosfera);text-align:right;}
+  .result-item.highlight{background:rgba(94,200,240,0.08);border-color:rgba(94,200,240,0.3);}
+
+  .curio-box{margin-top:18px;padding:18px;border-radius:10px;background:linear-gradient(135deg, var(--biosfera-d), var(--card));border:1px solid var(--border);font-size:.92rem;min-height:70px;display:flex;align-items:center;transition:.3s;}
+  .curio-box .curio-icon{font-size:1.5rem;margin-right:12px;}
+
+  .reto-card{background:linear-gradient(135deg, var(--card), var(--card-soft));border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:20px;}
+  .reto-card h3{color:var(--atmosfera);margin-bottom:12px;}
+  .reto-card .scenario{padding:12px 14px;border-radius:8px;background:var(--card-soft);border:1px solid var(--border);margin-bottom:10px;font-size:.9rem;}
+  .reto-card .scenario strong{color:var(--text);}
+  .reto-options{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;}
+  .reto-result{margin-top:14px;padding:14px;border-radius:8px;background:var(--card-soft);border:1px solid var(--border);display:none;font-size:.9rem;}
+  .reto-result.show{display:block;animation:fadeIn .3s ease;}
+  .reto-result.correct{border-color:var(--biosfera);background:rgba(95,184,91,0.1);}
+  .reto-result.incorrect{border-color:#e06262;background:rgba(224,98,98,0.1);}
+
+  .comparador{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media (max-width:700px){.comparador{grid-template-columns:1fr;}}
+  .escenario-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;}
+  .escenario-card h4{font-size:1rem;margin-bottom:10px;}
+  .escenario-card .bar-container{height:8px;border-radius:4px;background:var(--card-soft);overflow:hidden;margin:8px 0;}
+  .escenario-card .bar{height:100%;border-radius:4px;transition:width 1s ease;}
+  .escenario-card .metric-row{display:flex;justify-content:space-between;font-size:.85rem;margin:6px 0;}
+  .escenario-card .metric-row .val{font-weight:700;font-family:'Space Grotesk',sans-serif;}
+
+  .glosario-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;}
+  .glosario-item{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;transition:.2s;}
+  .glosario-item:hover{border-color:var(--atmosfera);transform:translateY(-2px);}
+  .glosario-item .term{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1rem;color:var(--atmosfera);margin-bottom:6px;}
+  .glosario-item .def{font-size:.88rem;color:var(--text-muted);}
+  .glosario-item .esfera-tag{display:inline-block;margin-top:8px;padding:3px 10px;border-radius:6px;font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;}
+  .tag-atmosfera{background:var(--atmosfera-d);color:var(--atmosfera);}
+  .tag-hidrosfera{background:var(--hidrosfera-d);color:var(--hidrosfera);}
+  .tag-litosfera{background:var(--litosfera-d);color:var(--litosfera);}
+  .tag-biosfera{background:var(--biosfera-d);color:var(--biosfera);}
+
+  .evento-banner{position:fixed;bottom:20px;right:20px;max-width:320px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;box-shadow:var(--shadow);z-index:200;transform:translateX(400px);transition:transform .5s ease;}
+  .evento-banner.show{transform:translateX(0);}
+  .evento-banner .evento-title{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1rem;color:var(--atmosfera);margin-bottom:6px;}
+  .evento-banner .evento-desc{font-size:.85rem;color:var(--text-muted);}
+  .evento-banner .close-btn{position:absolute;top:8px;right:12px;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1.2rem;}
+
+  footer{border-top:1px solid var(--border);padding:30px 0;margin-top:40px;color:var(--text-muted);font-size:.85rem;text-align:center;}
+  footer .logo-footer{margin-bottom:10px;}
+  footer .version{font-size:.75rem;opacity:.6;margin-top:6px;}
+
+  .focus-visible:focus, a:focus, button:focus, input:focus, textarea:focus{outline:2px solid var(--atmosfera);outline-offset:2px;}
+  ::-webkit-scrollbar{width:8px;}
+  ::-webkit-scrollbar-track{background:var(--bg);}
+  ::-webkit-scrollbar-thumb{background:var(--card-soft);border-radius:4px;}
+  ::-webkit-scrollbar-thumb:hover{background:var(--border);}
+</style>
+</head>
+<body>
+<nav>
+  <div class="container">
+    <div class="brand">
+      <svg class="logo-svg" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="24" cy="24" r="10" fill="url(#grad1)" class="pulse"/>
+        <ellipse cx="24" cy="24" rx="18" ry="6" stroke="var(--atmosfera)" stroke-width="0.5" fill="none" class="orbit" opacity="0.6"/>
+        <ellipse cx="24" cy="24" rx="6" ry="18" stroke="var(--hidrosfera)" stroke-width="0.5" fill="none" class="orbit" opacity="0.4" style="animation-delay:-2s;"/>
+        <circle cx="38" cy="12" r="2" fill="var(--biosfera)" class="orbit" style="animation:none;"/>
+        <defs><radialGradient id="grad1" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(20 20) rotate(45) scale(15)"><stop stop-color="var(--atmosfera)"/><stop offset="1" stop-color="var(--hidrosfera)"/></radialGradient></defs>
+      </svg>
+      <div class="brand-text">
+        <span class="main">Lab. Virtual Álvarez 2026</span>
+        <span class="sub">CETIS 43 · CNEyT III · Unidad 2</span>
+      </div>
+    </div>
+    <div class="navlinks">
+      <a href="#sistema">Esferas</a>
+      <a href="#datos">Datos</a>
+      <a href="#hidrosfera">Hidrósfera</a>
+      <a href="#biosfera">Biósfera</a>
+      <a href="#actividades">Actividades</a>
+      <a href="#glosario">Glosario</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="container">
+    <span class="eyebrow"><span class="live-dot"></span> Simulador Interactivo v3</span>
+    <h1>La Tierra como <em>un sistema</em></h1>
+    <p class="lead">Explora un corte transversal del planeta, desde el límite con el espacio hasta el manto superior, y descubre cómo la atmósfera, la hidrósfera, la litósfera y la biósfera funcionan como un solo sistema interconectado.</p>
+    <div class="hero-meta">
+      <span class="atmosfera-tag">🌬️ Atmósfera 78% N₂</span>
+      <span class="hidrosfera-tag">💧 Hidrósfera 97.5% salada</span>
+      <span class="litosfera-tag">🪨 Litosfera 100-150 km</span>
+      <span class="biosfera-tag">🌱 Biósfera 70.8% océanos</span>
+    </div>
+  </div>
+</header>
+
+<section id="sistema">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Explorador interactivo</span>
+      <h2>Un corte de la Tierra, capa por capa</h2>
+      <p>Haz clic sobre cada banda para conocer su ubicación, características, métricas clave y por qué es importante para el sistema terrestre.</p>
+    </div>
+    <div class="crosssection-wrap">
+      <div class="layers" id="layers"></div>
+      <div class="info-panel" id="infoPanel">
+        <div class="tag"><span class="icon">👆</span> Selecciona una capa</div>
+        <p class="desc">Da clic en cualquier banda del corte para ver su descripción, datos numéricos y conexión con el sistema.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="datos">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">La Tierra en números</span>
+      <h2>Datos generales del planeta</h2>
+      <p>Algunas cifras que ayudan a comprender la escala del sistema que habitamos. Métricas verificadas 2024-2026.</p>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="label">Radio ecuatorial</div><div class="value">6,378</div><div class="unit">km</div></div>
+      <div class="stat-card"><div class="label">Distancia media al Sol</div><div class="value">149.6</div><div class="unit">millones km (1 UA)</div></div>
+      <div class="stat-card"><div class="label">Día (rotación)</div><div class="value">23.93</div><div class="unit">horas</div></div>
+      <div class="stat-card"><div class="label">Año (órbita)</div><div class="value">365.256</div><div class="unit">días</div></div>
+      <div class="stat-card"><div class="label">Velocidad orbital</div><div class="value">106,000</div><div class="unit">km/h</div></div>
+      <div class="stat-card"><div class="label">Temperatura media</div><div class="value">15</div><div class="unit">°C</div></div>
+      <div class="stat-card"><div class="label">Temperatura máxima</div><div class="value">58</div><div class="unit">°C (Lut, Irán)</div></div>
+      <div class="stat-card"><div class="label">Temperatura mínima</div><div class="value">−89.6</div><div class="unit">°C (Antártida)</div></div>
+      <div class="stat-card"><div class="label">Superficie total</div><div class="value">510.1 × 10⁶</div><div class="unit">km²</div></div>
+      <div class="stat-card"><div class="label">Masa aproximada</div><div class="value">5.98 × 10²¹</div><div class="unit">toneladas</div></div>
+      <div class="stat-card"><div class="label">Aceleración gravedad</div><div class="value">9.78</div><div class="unit">m/s² (ecuador)</div></div>
+      <div class="stat-card"><div class="label">Volumen total</div><div class="value">1.083 × 10¹²</div><div class="unit">km³</div></div>
+    </div>
+  </div>
+</section>
+
+<section id="hidrosfera">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Distribución del agua</span>
+      <h2>La hidrósfera: toda el agua del planeta</h2>
+      <p>El agua no se distribuye de manera uniforme. Haz clic sobre cada segmento de las barras para conocer el detalle. Datos: USGS 2024.</p>
+    </div>
+    <div class="water-card">
+      <h3>🌊 Agua total del planeta · 1,386 × 10⁹ km³</h3>
+      <div class="water-bar">
+        <div class="seg seg-salada" data-key="salada">97.5% — Agua salada</div>
+        <div class="seg seg-dulce" data-key="dulce">2.5%</div>
+      </div>
+      <div class="legend">
+        <span><i style="background:var(--hidrosfera)"></i> Océanos y mares (97.5%)</span>
+        <span><i style="background:#9be0d8"></i> Agua dulce (2.5%)</span>
+      </div>
+      <div class="water-metrics">
+        <div class="w-metric"><div class="num">1,338</div><div class="txt">millones km³ salada</div></div>
+        <div class="w-metric"><div class="num">35</div><div class="txt">millones km³ dulce</div></div>
+        <div class="w-metric"><div class="num">0.025%</div><div class="txt">potable accesible</div></div>
+      </div>
+      <div class="freshwater">
+        <h3>💧 Distribución del agua dulce (2.5% del total)</h3>
+        <div class="fw-bar">
+          <div class="fw-seg fw-glaciares" data-key="glaciares">68.7% Glaciares</div>
+          <div class="fw-seg fw-subterranea" data-key="subterranea">30.1% Subterránea</div>
+          <div class="fw-seg fw-superficial" data-key="superficial">1.2%</div>
+        </div>
+        <div class="legend">
+          <span><i style="background:#bfe8f7"></i> Glaciares (68.7%)</span>
+          <span><i style="background:#7fd0e6"></i> Aguas subterráneas (30.1%)</span>
+          <span><i style="background:#3f9fc4"></i> Superficial y otras (1.2%)</span>
+        </div>
+      </div>
+      <div class="water-detail" id="waterDetail">
+        💡 <strong>Selecciona un segmento</strong> de las barras para ver información detallada con datos cuantitativos.
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="biosfera">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Importancia del sistema Tierra</span>
+      <h2>La biósfera y su relación con las demás esferas</h2>
+      <p>La biósfera —el conjunto de seres vivos— depende y a la vez transforma a la atmósfera, la hidrósfera y la litósfera.</p>
+    </div>
+    <div class="bio-grid">
+      <div class="bio-card econ">
+        <span class="icon">🌾</span>
+        <h3>Agricultura y ganadería</h3>
+        <p>Base para la producción de alimentos, fibras y biocombustibles, posible gracias al suelo (litósfera), el agua (hidrósfera) y el clima (atmósfera).</p>
+        <span class="metric-tag">Esferas: Litósfera + Hidrósfera + Atmósfera</span>
+      </div>
+      <div class="bio-card econ">
+        <span class="icon">⛏️</span>
+        <h3>Materias primas</h3>
+        <p>La corteza terrestre provee recursos minerales (cobre, hierro, oro) y energéticos (petróleo, gas natural, carbón) que mueven la industria mundial.</p>
+        <span class="metric-tag">Esfera: Litósfera</span>
+      </div>
+      <div class="bio-card econ">
+        <span class="icon">🐝</span>
+        <h3>Servicios ecosistémicos</h3>
+        <p>La polinización, la purificación del agua y la captura de carbono son funciones naturales con un valor económico incalculable.</p>
+        <span class="metric-tag">Esfera: Biósfera + Hidrósfera + Atmósfera</span>
+      </div>
+      <div class="bio-card">
+        <span class="icon">💨</span>
+        <h3>Condiciones para la vida</h3>
+        <p>La atmósfera, la temperatura y el agua que el sistema Tierra mantiene son indispensables para la supervivencia celular y orgánica.</p>
+        <span class="metric-tag">Esfera: Atmósfera + Hidrósfera</span>
+      </div>
+      <div class="bio-card">
+        <span class="icon">🔄</span>
+        <h3>Ciclos biogeoquímicos</h3>
+        <p>El suelo, los océanos y la atmósfera reciclan nutrientes esenciales como el carbono, el nitrógeno y el fósforo, indispensables para la vida.</p>
+        <span class="metric-tag">Todas las esferas</span>
+      </div>
+      <div class="bio-card">
+        <span class="icon">🦋</span>
+        <h3>Cadena alimenticia</h3>
+        <p>Los ecosistemas terrestres y acuáticos generan la biomasa que sirve de alimento a todas las especies del planeta.</p>
+        <span class="metric-tag">Esfera: Biósfera + Hidrósfera</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="actividades">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Pon a prueba lo aprendido</span>
+      <h2>Actividades de evaluación</h2>
+      <p>Selecciona una actividad para repasar los contenidos de la Unidad 2. Incluye quiz, reto climático, comparador y cuestionario.</p>
+    </div>
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="quiz">🧠 Quiz</button>
+      <button class="tab-btn" data-tab="reto">🎯 Reto Climático</button>
+      <button class="tab-btn" data-tab="comparador">📊 Comparador</button>
+      <button class="tab-btn" data-tab="cuestionario">📝 Reflexión</button>
+      <button class="tab-btn" data-tab="calculadora">🔢 Explorador</button>
+    </div>
+    <div class="tab-panel active" id="panel-quiz">
+      <div id="quizContainer"></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;">
+        <button class="btn" id="checkQuizBtn">Revisar respuestas</button>
+        <button class="btn secondary" id="resetQuizBtn">Reiniciar</button>
+      </div>
+      <div class="score-banner" id="scoreBanner"></div>
+    </div>
+    <div class="tab-panel" id="panel-reto">
+      <div class="reto-card">
+        <h3>🎯 Reto Climático: ¿Qué harías?</h3>
+        <p style="font-size:.9rem;color:var(--text-muted);margin-bottom:14px;">Lee el escenario y selecciona la acción más efectiva para proteger el sistema Tierra.</p>
+        <div id="retoContainer"></div>
+      </div>
+    </div>
+    <div class="tab-panel" id="panel-comparador">
+      <div class="comparador" id="comparadorContainer">
+        <div class="escenario-card">
+          <h4>🌍 Escenario Actual (2024)</h4>
+          <div id="escenarioActual"></div>
+        </div>
+        <div class="escenario-card">
+          <h4>⚠️ Escenario Sin Protección (2050)</h4>
+          <div id="escenarioFuturo"></div>
+        </div>
+      </div>
+      <p style="text-align:center;margin-top:16px;font-size:.85rem;color:var(--text-muted);">Datos proyectados basados en tendencias IPCC AR6 · NOAA 2024</p>
+    </div>
+    <div class="tab-panel" id="panel-cuestionario">
+      <div id="questContainer"></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;">
+        <button class="btn" id="downloadQuestBtn">📥 Descargar respuestas (.txt)</button>
+        <button class="btn secondary" id="clearQuestBtn">Limpiar</button>
+      </div>
+    </div>
+    <div class="tab-panel" id="panel-calculadora">
+      <div class="calc-grid">
+        <div class="calc-card">
+          <h3>🧬 Tu lugar en el sistema Tierra</h3>
+          <p class="desc">Ingresa tus datos para generar información personalizada relacionada con la hidrósfera y el movimiento del planeta.</p>
+          <label for="pesoInput">Peso corporal (kg)</label>
+          <input type="number" id="pesoInput" min="1" placeholder="Ej. 60">
+          <label for="edadInput">Edad (años)</label>
+          <input type="number" id="edadInput" min="1" placeholder="Ej. 17">
+          <button class="btn" id="calcBtn">Calcular métricas</button>
+          <div class="result-list" id="resultList"></div>
+        </div>
+        <div class="calc-card">
+          <h3>🎲 Generador de datos curiosos</h3>
+          <p class="desc">Obtén un dato adicional relacionado con el sistema Tierra cada vez que presiones el botón.</p>
+          <button class="btn secondary" id="curioBtn">Mostrar dato curioso 🌍</button>
+          <div class="curio-box" id="curioBox">
+            <span class="curio-icon">🌍</span>
+            <span>Presiona el botón para descubrir un dato sobre nuestro planeta.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="glosario">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Referencia rápida</span>
+      <h2>Glosario del Sistema Tierra</h2>
+      <p>Conceptos clave de la Unidad 2 organizados por esfera terrestre.</p>
+    </div>
+    <div class="glosario-grid" id="glosarioContainer"></div>
+  </div>
+</section>
+
+<div class="evento-banner" id="eventoBanner">
+  <button class="close-btn" onclick="document.getElementById('eventoBanner').classList.remove('show')">×</button>
+  <div class="evento-title" id="eventoTitle">🌡️ Evento climático</div>
+  <div class="evento-desc" id="eventoDesc">Descripción del evento...</div>
+</div>
+
+<footer>
+  <div class="container">
+    <div class="logo-footer">
+      <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+        <circle cx="24" cy="24" r="10" fill="url(#gradFoot)"/>
+        <defs><radialGradient id="gradFoot"><stop stop-color="#5ec8f0"/><stop offset="1" stop-color="#2d7dd2"/></radialGradient></defs>
+      </svg>
+    </div>
+    <div>Simulador educativo — Unidad 2: La Tierra como un sistema · Biología · CETIS No. 43, Xochitepec, Morelos · DGETI</div>
+    <div class="version">Lab. Virtual Álvarez 2026 · v3.0 · Datos: USGS 2024 / NOAA / IPCC AR6</div>
+  </div>
+</footer>
+<script>
+const layers = [
+  {id:'exosfera', cls:'l-exosfera', icon:'🛰️', name:'Exosfera y espacio', range:'Más de 700 km', flex:1,
+   desc:'Es el límite difuso entre la atmósfera y el espacio exterior. Aquí los gases se vuelven tan escasos que se dispersan hacia el vacío. Marca el borde exterior del sistema Tierra.',
+   extra:'Más allá de esta capa ya no hay "aire" que retenga calor ni partículas: el sistema termina aquí.',
+   metrics:[{val:'>700',lbl:'km de altura'},{val:'~0',lbl:'densidad de aire'}]},
+  {id:'termosfera', cls:'l-termosfera', icon:'🌌', name:'Termósfera (Ionósfera)', range:'80 a 700 km de altura', flex:2,
+   desc:'Absorbe los rayos X y UV más intensos del Sol, produciendo las auroras boreales y permitiendo la transmisión de ondas de radio. Aquí orbita la Estación Espacial Internacional.',
+   extra:'A pesar de ser muy caliente por la radiación absorbida, el aire es tan escaso que casi no transmite calor por contacto.',
+   metrics:[{val:'80-700',lbl:'km de altura'},{val:'~500',lbl:'°C (partículas)'}]},
+  {id:'mesosfera', cls:'l-mesosfera', icon:'☄️', name:'Mesósfera', range:'50 a 80-85 km de altura', flex:1,
+   desc:'Es la capa más fría de la atmósfera, con temperaturas de hasta -90 °C. Aquí se desintegran los meteoritos al entrar en contacto con el aire, formando las "estrellas fugaces".',
+   extra:'Función clave: evita que muchos cuerpos celestes pequeños lleguen a la superficie terrestre.',
+   metrics:[{val:'50-85',lbl:'km de altura'},{val:'−90',lbl:'°C (mínima)'}]},
+  {id:'estratosfera', cls:'l-estratosfera', icon:'🌀', name:'Estratósfera', range:'12 a 50 km de altura', flex:1.2,
+   desc:'En su parte superior se encuentra la capa de ozono, que filtra la radiación ultravioleta del Sol y protege a los seres vivos. Aquí vuelan los aviones supersónicos y ciertos globos meteorológicos.',
+   extra:'La capa de ozono es uno de los "escudos" más importantes que hacen posible la vida en la biósfera.',
+   metrics:[{val:'12-50',lbl:'km de altura'},{val:'3-8%',lbl:'masa atmosférica'}]},
+  {id:'troposfera', cls:'l-troposfera', icon:'☁️', name:'Tropósfera', range:'0 a 12 km de altura', flex:1,
+   desc:'La capa más cercana a la superficie. Contiene la mayor parte de la masa de aire y del vapor de agua, y es donde ocurren los fenómenos meteorológicos: nubes, lluvia, viento.',
+   extra:'Composición: 78% nitrógeno, 21% oxígeno y 1% de otros gases (CO₂, metano, ozono, vapor de agua). La mayor parte del O₂ fue liberado por organismos fotosintéticos.',
+   metrics:[{val:'0-12',lbl:'km de altura'},{val:'75%',lbl:'masa atmosférica'}]},
+  {id:'superficie', cls:'l-superficie', icon:'🌊🌱', name:'Superficie — Hidrósfera y Biósfera', range:'Nivel del mar (0 km)', flex:1,
+   desc:'En esta delgada franja conviven la hidrósfera (océanos, ríos, lagos y glaciares, que cubren el 70.8% de la superficie) y la biósfera (todos los seres vivos: plantas, animales y microorganismos).',
+   extra:'Casi toda la vida conocida del sistema Tierra se concentra en esta zona y en los primeros metros de profundidad u altura a su alrededor.',
+   metrics:[{val:'70.8%',lbl:'cubierto por agua'},{val:'0.025%',lbl:'agua potable'}]},
+  {id:'litosfera', cls:'l-litosfera', icon:'🪨', name:'Litósfera (corteza)', range:'0 a 100-150 km de profundidad', flex:1.5,
+   desc:'Capa sólida y rígida formada por la corteza terrestre y la parte superior del manto. Está formada por silicatos y metales, y fragmentada en placas tectónicas en continuo movimiento.',
+   extra:'Proporciona el sustrato físico y los minerales que sostienen a la biósfera: suelos, montañas, fondo oceánico.',
+   metrics:[{val:'100-150',lbl:'km de profundidad'},{val:'7-12',lbl:'placas tectónicas'}]},
+  {id:'astenosfera', cls:'l-astenosfera', icon:'🌋', name:'Astenósfera / Manto superior', range:'Más de 100-150 km de profundidad', flex:1.2,
+   desc:'Por debajo de la litósfera, el manto se vuelve dúctil. El calor interno de la Tierra impulsa el movimiento de las placas tectónicas, dando origen a montañas, volcanes y fosas oceánicas.',
+   extra:'Aunque no forma parte directa de la biósfera, su dinámica moldea el relieve donde la vida se desarrolla.',
+   metrics:[{val:'>150',lbl:'km de profundidad'},{val:'1,300',lbl:'°C aproximado'}]}
+];
+
+const layersContainer = document.getElementById('layers');
+const infoPanel = document.getElementById('infoPanel');
+layers.forEach(layer=>{
+  const btn = document.createElement('button');
+  btn.className = `layer ${layer.cls}`;
+  btn.style.flex = layer.flex;
+  btn.innerHTML = `<span class="name">${layer.icon} ${layer.name}</span><span class="range">${layer.range}</span>`;
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.layer').forEach(l=>l.classList.remove('active'));
+    btn.classList.add('active');
+    const metricsHtml = layer.metrics ? `<div class="metric-box">${layer.metrics.map(m=>`<div class="metric"><div class="val">${m.val}</div><div class="lbl">${m.lbl}</div></div>`).join('')}</div>` : '';
+    infoPanel.innerHTML = `<div class="tag"><span class="icon">${layer.icon}</span> ${layer.name}</div><div class="range-label">${layer.range}</div><p class="desc">${layer.desc}</p>${metricsHtml}<div class="extra">${layer.extra}</div>`;
+  });
+  layersContainer.appendChild(btn);
+});
+layersContainer.querySelector('.layer').click();
+
+const waterInfo = {
+  salada:'Los océanos y mares contienen el <strong>97.5%</strong> del agua del planeta (1,338 millones km³). Tienen una salinidad promedio de <strong>3.5%</strong> (NaCl, magnesio, sulfatos, calcio, potasio) y son el mayor regulador térmico y climático de la Tierra.',
+  dulce:'Solo el <strong>2.5%</strong> del agua total es dulce (35 millones km³). De ese porcentaje, la mayor parte está congelada o subterránea, por lo que el agua dulce líquida y accesible es muy escasa: apenas <strong>0.025%</strong> del agua total es potable para el consumo humano.',
+  glaciares:'Los glaciares y casquetes polares representan el <strong>68.7%</strong> del agua dulce del planeta (24 millones km³), siendo la mayor reserva de agua dulce de la Tierra. Se concentran principalmente en la Antártica y el Ártico.',
+  subterranea:'Las aguas subterráneas conforman cerca del <strong>30.1%</strong> del agua dulce (10.5 millones km³), alojándose en acuíferos. Son la mayor reserva de agua dulce líquida disponible para su extracción.',
+  superficial:'El agua superficial (ríos, lagos, pantanos) y la atmosférica representan apenas el <strong>1.2%</strong> del agua dulce (0.4 millones km³), pero son fundamentales para el ciclo hidrológico y el abastecimiento directo de ecosistemas y poblaciones.'
+};
+document.querySelectorAll('.water-bar .seg, .fw-bar .fw-seg').forEach(seg=>{
+  seg.addEventListener('click', ()=>{
+    const key = seg.dataset.key;
+    document.getElementById('waterDetail').innerHTML = `<strong>${seg.textContent.trim()}:</strong> ${waterInfo[key]}`;
+  });
+});
+
+const quizData = [
+  {q:'¿Qué porcentaje de la atmósfera terrestre corresponde al nitrógeno?',options:['21%','78%','1%','50%'],correct:1,explain:'La atmósfera está formada por <strong>78% de nitrógeno</strong>, 21% de oxígeno y 1% de otros gases (metano, CO₂, ozono, vapor de agua).'},
+  {q:'¿En qué capa de la atmósfera ocurren los fenómenos meteorológicos como la formación de nubes y la lluvia?',options:['Estratósfera','Mesósfera','Tropósfera','Termósfera'],correct:2,explain:'La <strong>tropósfera</strong> (0 a 12 km) contiene la mayor parte de la masa de aire y vapor de agua, por lo que es donde se forman las nubes y ocurre el clima.'},
+  {q:'¿En qué capa de la atmósfera se encuentra la capa de ozono que filtra la radiación ultravioleta?',options:['Tropósfera','Estratósfera','Mesósfera','Exosfera'],correct:1,explain:'En la parte superior de la <strong>estratósfera</strong> (hasta los 50 km) se encuentra la capa de ozono, que protege a los seres vivos de la radiación UV.'},
+  {q:'¿Cuál es la capa más fría de la atmósfera, donde se desintegran los meteoritos formando "estrellas fugaces"?',options:['Termósfera','Tropósfera','Mesósfera','Estratósfera'],correct:2,explain:'La <strong>mesósfera</strong> alcanza temperaturas de hasta -90 °C y es donde se desintegran los meteoritos al entrar en contacto con el aire.'},
+  {q:'¿Qué porcentaje de la superficie terrestre está cubierto por océanos y mares?',options:['50%','2.5%','70.8%','97.5%'],correct:2,explain:'Los océanos y mares cubren el <strong>70.8%</strong> de la superficie del planeta, formando una sola masa de agua.'},
+  {q:'Del agua total del planeta, ¿qué porcentaje es agua dulce?',options:['25%','2.5%','50%','10%'],correct:1,explain:'Solo el <strong>2.5%</strong> del agua total es dulce; el 97.5% restante es agua salada (océanos y mares).'},
+  {q:'¿Cuál es el mayor reservorio de agua dulce del planeta?',options:['Ríos y lagos','Atmósfera','Glaciares y casquetes polares','Aguas subterráneas'],correct:2,explain:'Los <strong>glaciares y casquetes polares</strong> representan el 68.7% del agua dulce, siendo la mayor reserva de agua dulce de la Tierra.'},
+  {q:'En las profundidades del océano (zona afótica), ¿qué proceso utilizan algunos organismos para obtener energía?',options:['Fotosíntesis','Respiración celular','Quimiosíntesis','Fermentación'],correct:2,explain:'Al no haber luz, los organismos de la zona afótica no se nutren de la fotosíntesis, sino de la <strong>quimiosíntesis</strong>.'},
+  {q:'¿Qué esfera terrestre proporciona el sustrato físico y los minerales que sostienen a la biósfera?',options:['Atmósfera','Hidrósfera','Litósfera','Exosfera'],correct:2,explain:'La <strong>litósfera</strong> proporciona suelos, montañas y fondo oceánico; está fragmentada en 7-12 placas tectónicas en movimiento.'},
+  {q:'¿Qué gas de efecto invernadero, junto con el vapor de agua, regula la temperatura terrestre?',options:['Oxígeno','Nitrógeno','Dióxido de carbono','Hidrógeno'],correct:2,explain:'El <strong>CO₂ (dióxido de carbono)</strong>, junto con el vapor de agua y otros gases, retiene parte de la radiación solar y controla el clima.'}
+];
+
+const quizContainer = document.getElementById('quizContainer');
+quizData.forEach((item, idx)=>{
+  const card = document.createElement('div');
+  card.className = 'quiz-card';
+  card.innerHTML = `<h4><span class="q-num">${idx+1}</span> ${item.q}</h4><div class="quiz-options">${item.options.map((opt,i)=>`<label data-idx="${i}"><input type="radio" name="q${idx}" value="${i}"> ${opt}</label>`).join('')}</div><div class="quiz-explain" id="explain${idx}">${item.explain}</div>`;
+  quizContainer.appendChild(card);
+});
+
+document.getElementById('checkQuizBtn').addEventListener('click', ()=>{
+  let score = 0;
+  quizData.forEach((item, idx)=>{
+    const selected = document.querySelector(`input[name="q${idx}"]:checked`);
+    const labels = document.querySelectorAll(`#quizContainer .quiz-card:nth-child(${idx+1}) .quiz-options label`);
+    labels.forEach(l=>{l.classList.remove('correct','incorrect');});
+    labels[item.correct].classList.add('correct');
+    if(selected){
+      const selIdx = parseInt(selected.value);
+      if(selIdx === item.correct){score++;} else {labels[selIdx].classList.add('incorrect');}
+    }
+    document.getElementById(`explain${idx}`).classList.add('show');
+  });
+  const banner = document.getElementById('scoreBanner');
+  let msg, color, stars;
+  if(score === quizData.length){msg='¡Excelente! Dominas el sistema Tierra.'; color='var(--biosfera)'; stars='⭐⭐⭐⭐⭐';}
+  else if(score >= quizData.length-2){msg='¡Muy bien! Tienes una buena comprensión del tema.'; color='var(--atmosfera)'; stars='⭐⭐⭐⭐';}
+  else if(score >= quizData.length/2){msg='Vas bien, pero conviene repasar algunos conceptos.'; color='var(--litosfera)'; stars='⭐⭐⭐';}
+  else {msg='Te recomendamos repasar la Unidad 2 antes de continuar.'; color='#e06262'; stars='⭐⭐';}
+  banner.style.borderColor = color;
+  banner.innerHTML = `Resultado: ${score} de ${quizData.length} respuestas correctas.<div class="sub">${msg}</div><div class="stars">${stars}</div>`;
+  banner.classList.add('show');
+});
+
+document.getElementById('resetQuizBtn').addEventListener('click', ()=>{
+  document.querySelectorAll('#quizContainer input[type="radio"]').forEach(r=>r.checked=false);
+  document.querySelectorAll('#quizContainer .quiz-options label').forEach(l=>l.classList.remove('correct','incorrect'));
+  document.querySelectorAll('.quiz-explain').forEach(e=>e.classList.remove('show'));
+  document.getElementById('scoreBanner').classList.remove('show');
+});
+
+const retos = [
+  {scenario:'🌊 Un derrame industrial amenaza con contaminar el río que abastece a tu comunidad (Xochitepec). ¿Qué acción es más efectiva a corto plazo?',options:['Construir una represa','Implementar barreras de contención y notificar autoridades','Esperar a que la lluvia diluya el contaminante','Cambiar la fuente de agua sin reportar'],correct:1,explain:'✅ Correcto: Las barreras de contención limitan la dispersión y notificar permite una respuesta coordinada. La dilución no elimina toxinas y ocultar el problema agrava la crisis.'},
+  {scenario:'🌡️ Se detecta un aumento de 3°C en la temperatura local de la Sierra de Monte Negro. ¿Qué indica esto sobre la interacción esferas?',options:['Solo afecta la atmósfera','Afecta atmósfera, hidrósfera (evaporación) y biosfera (migración de especies)','Es un problema exclusivo de la litósfera','No tiene impacto en el sistema Tierra'],correct:1,explain:'✅ Correcto: El calor afecta múltiples esferas: aumenta evaporación (hidrósfera), altera hábitats (biosfera) y puede desencadenar erosión (litósfera). El sistema Tierra es interconectado.'},
+  {scenario:'🏭 Una fábrica en Morelos emite gases de efecto invernadero. ¿Qué esfera se ve más afectada primero y cuál es la consecuencia?',options:['Litósfera: terremotos','Atmósfera: calentamiento global que altera todas las esferas','Hidrósfera: solo acidificación de océanos','Biosfera: extinción inmediata'],correct:1,explain:'✅ Correcto: La atmósfera absorbe los gases primero, pero el calentamiento global repercute en todas las esferas: derretimiento de glaciares (hidrósfera), erosión (litósfera) y pérdida de biodiversidad (biosfera).'}
+];
+let retoIndex = 0;
+function loadReto(){
+  const r = retos[retoIndex];
+  const container = document.getElementById('retoContainer');
+  container.innerHTML = `<div class="scenario"><strong>Escenario ${retoIndex+1}/${retos.length}:</strong> ${r.scenario}</div><div class="reto-options">${r.options.map((opt,i)=>`<button class="btn secondary" onclick="checkReto(${i})">${opt}</button>`).join('')}</div><div class="reto-result" id="retoResult"></div><div style="margin-top:14px;"><button class="btn" id="nextRetoBtn" style="display:none;" onclick="nextReto()">Siguiente reto →</button></div>`;
+}
+function checkReto(sel){
+  const r = retos[retoIndex];
+  const result = document.getElementById('retoResult');
+  result.innerHTML = (sel === r.correct ? '✅ ' : '❌ ') + r.explain;
+  result.className = 'reto-result show ' + (sel === r.correct ? 'correct' : 'incorrect');
+  document.getElementById('nextRetoBtn').style.display = 'inline-block';
+}
+function nextReto(){
+  retoIndex = (retoIndex + 1) % retos.length;
+  loadReto();
+}
+loadReto();
+
+function renderComparador(){
+  const datos = [
+    {label:'Temperatura media', actual:'15°C', futuro:'18.5°C', actualVal:15, futuroVal:18.5, max:25, unit:'°C', color:'var(--litosfera)'},
+    {label:'Nivel del mar', actual:'0 cm', futuro:'+43 cm', actualVal:0, futuroVal:43, max:100, unit:'cm', color:'var(--hidrosfera)'},
+    {label:'CO₂ atmosférico', actual:'424 ppm', futuro:'485 ppm', actualVal:424, futuroVal:485, max:600, unit:'ppm', color:'var(--atmosfera)'},
+    {label:'Hielo ártico', actual:'4.2M km²', futuro:'2.1M km²', actualVal:4.2, futuroVal:2.1, max:5, unit:'M km²', color:'#9be0d8'},
+    {label:'Especies en riesgo', actual:'8%', futuro:'25%', actualVal:8, futuroVal:25, max:30, unit:'%', color:'var(--biosfera)'}
+  ];
+  const actualDiv = document.getElementById('escenarioActual');
+  const futuroDiv = document.getElementById('escenarioFuturo');
+  actualDiv.innerHTML = datos.map(d=>`<div class="metric-row"><span>${d.label}</span><span class="val" style="color:${d.color}">${d.actual}</span></div><div class="bar-container"><div class="bar" style="width:${(d.actualVal/d.max)*100}%;background:${d.color};"></div></div>`).join('');
+  futuroDiv.innerHTML = datos.map(d=>`<div class="metric-row"><span>${d.label}</span><span class="val" style="color:${d.color}">${d.futuro}</span></div><div class="bar-container"><div class="bar" style="width:${(d.futuroVal/d.max)*100}%;background:${d.color};"></div></div>`).join('');
+}
+renderComparador();
+
+const questions = [
+  {num:'1', text:'Describe un ejemplo concreto, observado en tu comunidad (Xochitepec o la región de la Sierra de Monte Negro), donde se note la interacción entre dos o más esferas terrestres (atmósfera, hidrósfera, litósfera, biósfera).'},
+  {num:'2', text:'¿Qué servicios ecosistémicos (purificación del agua, captura de carbono, polinización, etc.) identificas cerca de tu escuela o comunidad? ¿De qué esfera provienen principalmente?'},
+  {num:'3', text:'Si la capa de ozono (estratósfera) se redujera a la mitad, ¿qué consecuencias tendría para la biósfera y para la salud humana?'},
+  {num:'4', text:'Elige uno de los ciclos biogeoquímicos (carbono, nitrógeno o fósforo) y explica, con tus palabras, cómo conecta a la atmósfera, la hidrósfera y la biósfera.'},
+  {num:'5', text:'Menciona una actividad humana en Morelos (agrícola, urbana o turística) que afecte a la hidrósfera, y propón una acción para reducir ese impacto.'}
+];
+const questContainer = document.getElementById('questContainer');
+questions.forEach((q, idx)=>{
+  const card = document.createElement('div');
+  card.className = 'quest-card';
+  card.innerHTML = `<label for="resp${idx}"><span class="q-badge">P${q.num}</span> ${q.text}</label><textarea id="resp${idx}" placeholder="Escribe tu respuesta aquí..." oninput="updateCount(${idx})"></textarea><div class="word-count" id="count${idx}">0 palabras</div>`;
+  questContainer.appendChild(card);
+});
+function updateCount(idx){
+  const text = document.getElementById(`resp${idx}`).value;
+  const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+  document.getElementById(`count${idx}`).textContent = `${words} palabra${words!==1?'s':''}`;
+}
+document.getElementById('downloadQuestBtn').addEventListener('click', ()=>{
+  let content = 'CUESTIONARIO DE REFLEXIÓN — UNIDAD 2: LA TIERRA COMO UN SISTEMA\n';
+  content += 'Biología/Ecología — CETIS No. 43, Xochitepec, Morelos — DGETI\n';
+  content += 'Lab. Virtual Álvarez 2026 · Simulador v3.0\n';
+  content += 'Fecha: ' + new Date().toLocaleString('es-MX') + '\n\n';
+  questions.forEach((q, idx)=>{
+    const resp = document.getElementById(`resp${idx}`).value.trim() || '(sin respuesta)';
+    content += `PREGUNTA ${q.num}: ${q.text}\n${resp}\n\n`;
+  });
+  const blob = new Blob([content], {type:'text/plain;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'Cuestionario_Sistema_Tierra_v3.txt';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+});
+document.getElementById('clearQuestBtn').addEventListener('click', ()=>{
+  if(confirm('¿Borrar todas las respuestas?')){
+    questions.forEach((q, idx)=>{document.getElementById(`resp${idx}`).value='';updateCount(idx);});
+  }
+});
+
+const ORBITAL_SPEED = 106000;
+const DAYS_PER_YEAR = 365.256;
+const EARTH_SUN_DIST = 149600000;
+const MOON_DIST = 384400;
+document.getElementById('calcBtn').addEventListener('click', ()=>{
+  const peso = parseFloat(document.getElementById('pesoInput').value);
+  const edad = parseFloat(document.getElementById('edadInput').value);
+  const resultList = document.getElementById('resultList');
+  resultList.innerHTML = '';
+  if(!peso || peso<=0){resultList.innerHTML = '<div class="result-item">⚠️ Ingresa un peso válido para calcular.</div>';return;}
+  const aguaAdulto = (peso*0.6).toFixed(1);
+  const aguaBebe = (peso*0.7).toFixed(1);
+  addResult(resultList,'💧 Agua aproximada en tu cuerpo (50-60%)', `${aguaAdulto} litros`, true);
+  addResult(resultList,'👶 Si fueras bebé (~70% de agua)', `${aguaBebe} litros`, false);
+  if(edad && edad>0){
+    const distanciaTotal = edad * DAYS_PER_YEAR * 24 * ORBITAL_SPEED;
+    const vecesSol = (distanciaTotal / EARTH_SUN_DIST).toFixed(1);
+    const vecesLuna = (distanciaTotal / (MOON_DIST*2)).toFixed(0);
+    addResult(resultList,'🚀 Distancia recorrida alrededor del Sol', `${distanciaTotal.toExponential(2)} km`, false);
+    addResult(resultList,'☀️ Equivale a viajar Tierra-Sol', `${vecesSol} veces`, true);
+    addResult(resultList,'🌕 Equivale a ir y volver a la Luna', `${vecesLuna} veces`, false);
+  }
+  const tiempoLuz = (EARTH_SUN_DIST / 299792).toFixed(1);
+  addResult(resultList,'☀️ Tiempo luz Sol→Tierra', `${tiempoLuz} segundos`, false);
+  const distanciaDia = 24 * ORBITAL_SPEED;
+  addResult(resultList,'🌍 Distancia Tierra en 1 día', `${distanciaDia.toLocaleString('es-MX')} km`, true);
+});
+function addResult(container, label, value, highlight){
+  const div = document.createElement('div');
+  div.className = 'result-item' + (highlight ? ' highlight' : '');
+  div.innerHTML = `<span>${label}</span><span class="v">${value}</span>`;
+  container.appendChild(div);
+}
+
+const curiosidades = [
+  {icon:'🌬️', text:'Si comprimieras toda la atmósfera hasta hacerla tan densa como el agua, formarías una capa de apenas 10 metros sobre la superficie del planeta.'},
+  {icon:'🐟', text:'El 90% de la vida marina se concentra en la zona fótica: los primeros 200 metros de profundidad del océano.'},
+  {icon:'🧂', text:'El agua del mar es salada porque, durante millones de años, los ríos han arrastrado minerales hacia el mar; al evaporarse el agua, esos minerales se quedan.'},
+  {icon:'🚀', text:'La Tierra viaja a 106,000 km/h alrededor del Sol; en un solo día recorre ~2,544,000 km.'},
+  {icon:'🌡️', text:'La temperatura mínima registrada en la superficie terrestre es de -89.6 °C, mientras que la máxima alcanza los 58 °C.'},
+  {icon:'🛰️', text:'La Estación Espacial Internacional orbita dentro de la termósfera, a unos 400 km de altura sobre la superficie.'},
+  {icon:'💧', text:'Cada gota de agua que bebes pudo haber formado parte de un glaciar, una nube o incluso haber pasado por el cuerpo de un dinosaurio hace millones de años.'},
+  {icon:'🧬', text:'En el cuerpo humano adulto, el agua representa entre el 50 y 60% de la masa corporal; en un bebé, ese valor sube hasta el 70%.'},
+  {icon:'🎨', text:'Bajo el agua, los colores se van perdiendo con la profundidad: primero desaparece el rojo, luego el naranja, el amarillo, el verde y por último el azul.'},
+  {icon:'🪨', text:'La litósfera tiene una extensión de 100 a 150 km de profundidad y está fragmentada en placas tectónicas que se mueven continuamente.'},
+  {icon:'🌊', text:'Si se extrajera toda la sal de los océanos, habría suficiente para cubrir la superficie terrestre con una capa de 166 metros de espesor.'},
+  {icon:'🦠', text:'La mayor parte del oxígeno atmosférico fue liberada por microorganismos marinos fotosintéticos, no por los bosques terrestres.'}
+];
+let curioIndex = 0;
+document.getElementById('curioBtn').addEventListener('click', ()=>{
+  const box = document.getElementById('curioBox');
+  const c = curiosidades[curioIndex % curiosidades.length];
+  box.style.opacity = 0;
+  setTimeout(()=>{box.innerHTML = `<span class="curio-icon">${c.icon}</span><span>${c.text}</span>`;box.style.opacity = 1;curioIndex++;}, 150);
+});
+
+const glosario = [
+  {term:'Atmósfera', def:'Capa de gases que rodea la Tierra. Composición: 78% N₂, 21% O₂, 1% otros gases (CO₂, CH₄, O₃, vapor de agua).', esfera:'atmosfera'},
+  {term:'Tropósfera', def:'Capa más cercana a la superficie (0-12 km). Contiene 75% de la masa atmosférica y ocurren los fenómenos meteorológicos.', esfera:'atmosfera'},
+  {term:'Estratósfera', def:'Capa de 12-50 km donde se encuentra la capa de ozono que filtra la radiación UV.', esfera:'atmosfera'},
+  {term:'Mesósfera', def:'Capa de 50-85 km. La más fría (-90°C). Los meteoritos se desintegran aquí.', esfera:'atmosfera'},
+  {term:'Termósfera', def:'Capa de 80-700 km. Absorbe rayos X y UV. Aurora boreal y satélites orbitan aquí.', esfera:'atmosfera'},
+  {term:'Hidrósfera', def:'Conjunto de toda el agua en la Tierra: océanos, ríos, lagos, glaciares, aguas subterráneas y vapor atmosférico.', esfera:'hidrosfera'},
+  {term:'Salinidad', def:'Concentración de sales disueltas en el agua. Promedio oceánico: 3.5% (35 g/L).', esfera:'hidrosfera'},
+  {term:'Ciclo hidrológico', def:'Circulación del agua entre océanos, atmósfera, tierra y seres vivos mediante evaporación, condensación y precipitación.', esfera:'hidrosfera'},
+  {term:'Zona fótica', def:'Capa superficial del océano (0-200 m) donde penetra la luz solar y ocurre la fotosíntesis. Contiene ~90% de la vida marina.', esfera:'hidrosfera'},
+  {term:'Zona afótica', def:'Profundidades oceánicas sin luz solar. Los organismos utilizan quimiosíntesis para obtener energía.', esfera:'hidrosfera'},
+  {term:'Litósfera', def:'Capa sólida y rígida de la Tierra formada por corteza y manto superior. Extensión: 100-150 km de profundidad.', esfera:'litosfera'},
+  {term:'Placas tectónicas', def:'Grandes fragmentos de roca sólida de la litósfera que se mueven sobre la astenósfera. Son 7-12 placas principales.', esfera:'litosfera'},
+  {term:'Astenósfera', def:'Capa dúctil del manto superior (150+ km) donde el calor interno impulsa el movimiento de las placas tectónicas.', esfera:'litosfera'},
+  {term:'Biósfera', def:'Conjunto de todos los seres vivos del planeta: plantas, animales, hongos, bacterias y otros microorganismos.', esfera:'biosfera'},
+  {term:'Ciclos biogeoquímicos', def:'Reciclaje de nutrientes (C, N, P) entre la atmósfera, hidrósfera, litósfera y biósfera.', esfera:'biosfera'},
+  {term:'Servicios ecosistémicos', def:'Beneficios que los ecosistemas proporcionan a los humanos: purificación de agua, polinización, captura de carbono.', esfera:'biosfera'},
+  {term:'Quimiosíntesis', def:'Proceso de obtención de energía a partir de compuestos químicos (no luz), usado en zonas afóticas del océano.', esfera:'biosfera'},
+  {term:'Efecto invernadero', def:'Fenómeno por el cual ciertos gases (CO₂, CH₄, vapor de agua) retienen calor en la atmósfera, manteniendo la temperatura terrestre habitable.', esfera:'atmosfera'}
+];
+const glosarioContainer = document.getElementById('glosarioContainer');
+glosario.forEach(item=>{
+  const div = document.createElement('div');
+  div.className = 'glosario-item';
+  div.innerHTML = `<div class="term">${item.term}</div><div class="def">${item.def}</div><span class="esfera-tag tag-${item.esfera}">${item.esfera}</span>`;
+  glosarioContainer.appendChild(div);
+});
+
+const eventos = [
+  {title:'🌡️ Ola de calor extremo', desc:'La temperatura en Xochitepec supera los 45°C. La hidrósfera evapora más rápido y la biosfera sufre estrés hídrico. ¿Cómo afecta esto al sistema Tierra local?'},
+  {title:'🌧️ Lluvia ácida detectada', desc:'La atmósfera transporta contaminantes que acidifican la hidrósfera (ríos y lagos). La litósfera libera minerales que neutralizan parcialmente. ¿Qué esferas se interconectan?'},
+  {title:'🌋 Actividad volcánica', desc:'Una erupción en la litósfera libera cenizas a la atmósfera, que bloquean la luz solar y afectan la fotosíntesis (biosfera). ¿Cuánto tiempo tarda el sistema en recuperarse?'},
+  {title:'🌊 Maremoto en el Pacífico', desc:'La litósfera se mueve, desplazando la hidrósfera (tsunami). La atmósfera absorbe vapor de agua. ¿Qué ciclo biogeoquímico se ve afectado?'},
+  {title:'🦠 Floración de algas', desc:'Exceso de nutrientes en la hidrósfera (eutrofización) provoca floración tóxica que afecta la biosfera marina. ¿De qué esfera provienen los nutrientes?'},
+  {title:'🏜️ Sequía prolongada', desc:'La atmósfera retiene menos vapor de agua, la hidrósfera (ríos) desciende y la litósfera se erosiona. La biosfera pierde biodiversidad. ¿Qué esfera inicia el problema?'}
+];
+function mostrarEventoAleatorio(){
+  const ev = eventos[Math.floor(Math.random() * eventos.length)];
+  document.getElementById('eventoTitle').textContent = ev.title;
+  document.getElementById('eventoDesc').textContent = ev.desc;
+  const banner = document.getElementById('eventoBanner');
+  banner.classList.add('show');
+  setTimeout(()=>{banner.classList.remove('show');}, 12000);
+}
+setInterval(()=>{if(Math.random() > 0.5) mostrarEventoAleatorio();}, 60000);
+setTimeout(mostrarEventoAleatorio, 30000);
+
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(`panel-${btn.dataset.tab}`).classList.add('active');
+  });
+});
+
+const sections = ['sistema','datos','hidrosfera','biosfera','actividades','glosario'];
+window.addEventListener('scroll', ()=>{
+  let current = '';
+  sections.forEach(id=>{
+    const el = document.getElementById(id);
+    if(el && window.scrollY >= el.offsetTop - 100) current = id;
+  });
+  document.querySelectorAll('.navlinks a').forEach(a=>{
+    a.classList.toggle('active', a.getAttribute('href') === `#${current}`);
+  });
+});
+</script>
+</body>
+</html>
